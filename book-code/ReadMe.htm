@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+<title>Expert Advisor Programming - Source Code ReadMe</title>
+<style type="text/css">
+<!-- 
+.fixed {
+	font-family: Courier New;
+} 
+body {
+	font-family: Verdana, Arial, sans-serif;
+	font-size: small;
+	background-color: #ffff99;
+}
+code, pre {font-size: medium}
+h3 {font-size: small; margin-top: 30px;}
+-->
+</style>
+</head>
+<body>
+
+<h1>Contents</h1>
+
+<p>The programs in this file have been confirmed to compile in all MetaTrader builds, including versions above  build 509. 
+
+<ul>
+
+<li><a href="Experts/Simple.mq4">Experts/Simple.mq4</a> - This file contains the source code from Appendix A.</li>
+<li><a href="Experts/Simple Pending.mq4">Experts/Simple Pending.mq4</a> - This file contains the pending order version of the source code from Appendix A.</li>
+<p>
+
+<li><a href="Experts/Advanced.mq4">Experts/Advanced.mq4</a> - This file contains the source code from Appendix B.</li>
+<li><a href="Experts/Advanced Pending.mq4">Experts/Advanced Pending.mq4</a> - This file contains the pending order version of the source code from Appendix B.</li>
+<p>
+
+<li><a href="Experts/Advanced Includes.mq4">Experts/Advanced Includes.mq4</a> - This file contains the source code from Appendix C.</li>
+<li><a href="Experts/Advanced Pending Includes.mq4">Experts/Advanced Pending Includes.mq4</a> - This file contains the pending order version of the source code from Appendix C.</li>
+<p>
+
+<li><a href="Include/IncludeExample.mqh">Include/IncludeExample.mqh</a> - This file contains the include functions from Appendix D.</li>
+<li><a href="Indicators/EMA Bollinger.mq4">Indicators/EMA Bollinger.mq4</a> - This file contains the indicator from Appendix E.</li>
+<p>
+
+<li><a href="Sample Code.mq4">Sample Code.mq4</a> - This file contains code samples from throughout the book. This file will not compile, as it is not a program!</li>
+
+</ul>
+
+<h2>Instructions</h2>
+
+<p>Unzip the contents of this file into the <span class="fixed">MQL4</span> folder of your MetaTrader 4 installation folder. Make sure that the option to maintain folder structure is enabled in your zip program. If you are using build 509, unzip the contents of the Experts folder to <code>/experts</code>, the Indicators folder to <code>/experts/indicators</code>, and the Include folder to <code>/experts/include</code>.
+
+<p>To compile these files, open them in MetaEditor and press the Compile button. An .ex4 file will be created in the same folder.</p>
+
+<h2>Book Corrections</h2>
+
+<p>These code corrections are for the first printing of the book, unless otherwise specified. These errors have been fixed in later printings. All corrections can be viewed in context by opening the corresponding source code file.</p>
+
+<h3>Verifying Pending Order Prices - Pg 49</h3>
+
+The line <code>if(PendingPrice > UpperStopLevel) PendingPrice = UpperStopLevel - MinStop;</code><p>
+
+should read <code>if(PendingPrice > <b>LowerStopLevel</b>) PendingPrice = <b>LowerStopLevel</b> - MinStop;</code>
+
+<p>The code is correct elsewhere in the book. This error is in the first and second printing.
+
+<h3>CloseBuyOrder(), CloseSellOrder(), ClosePendingOrder() - Pg 69, 70, 184-186</h3>
+
+<p>In <code>CloseBuyOrder()</code> and <code>CloseSellOrder()</code>, the line <code>if(Closed < 0)</code> should read <code>if(Closed == false)</code>. 
+
+<p>In <code>CloseBuyOrder()</code> on page 69, <code>MarketInfo(Symbol(),MODE_ASK)</code> should be <code>MarketInfo(Symbol(),MODE_BID)</code>. The code is correct elsewhere in the book. This error is  in the first and second printing of the book.
+
+<p>In <code>ClosePendingOrder()</code>, the line <code>if(Deleted < 0)</code> should read <code>if(Deleted == false)</code>. <P>This error would prevent the error handling code from being run in the event of an error.</p>
+
+
+
+<p>The changes can be viewed in the <code>include/IncludeExample.mqh</code> file.</p>
+
+
+<h3>BuyTrailingStop() & SellTrailingStop() - Pg 87, 89, 195-196</h3>
+
+<p>We've added two new lines to these functions. First, we apply the <code>NormalizeDouble()</code> function to the <code>MaxStopLoss</code> variable. Then we do the same to the stop loss of the currently selected order, which we store in the variable <code>CurrentStop</code>.</p>
+
+<p>This ensures that the EA will not attempt to modify the trailing stop on changes in price that are less than the point value. This results in an error 1, which is harmless but annoying.</p>
+
+<p>These lines are added under the <code>MaxStopLoss</code> variable declaration:</p>
+
+<blockquote><pre>
+MaxStopLoss = NormalizeDouble(MaxStopLoss,MarketInfo(OrderSymbol(),MODE_DIGITS));
+				
+double CurrentStop = NormalizeDouble(OrderStopLoss(),MarketInfo(OrderSymbol(),MODE_DIGITS));
+</pre></blockquote>
+
+<p>The order modification conditions are updated accordingly. In <code>BuyTrailingStop()</code>, the condition <code>OrderStopLoss() < MaxStopLoss</code> is changed to <code>CurrentStop < MaxStopLoss</code>.</p>
+
+<p>In <code>SellTrailingStop()</code>, the condition <code>OrderStopLoss() > MaxStopLoss</code> is changed to <code>(CurrentStop > MaxStopLoss || CurrentStop == 0)</code>. If there is no stop loss placed with the order, the condition <code>CurrentStop > MaxStopLoss</code> will never be true, which means the trailing stop will not be applied. Thus, we add <code>CurrentStop == 0</code> as an alternate condition.</p>
+
+<p>The changes can be viewed in the <code>include/IncludeExample.mqh</code> file.</p>
+
+
+
+<h3>Break Even Stop - Pg 90</h3>
+
+<p>The line </p>
+
+<blockquote><code>double MinProfit = BreakEvenProfit * UsePoint);</code> </blockquote>
+
+<p>should read: </p>
+
+<blockquote><code>double MinProfit = BreakEvenProfit * PipPoint(Symbol());</code></blockquote>
+
+<p>We've added another condition before the <code>OrderModify()</code> function. The condition <code>OrderOpenPrice() != OrderStopLoss()</code> ensures that the EA won't attempt to modify the stop loss after it has been moved to break even.</p>
+
+<p>The line <code>if(Trailed == false)</code> should read <code>if(BreakEven == false)</code></p>
+
+<p>The changes can be viewed in the <code>Sample Code.mq4</code> file.</p>
+
+
+
+<h3>Retry on Error - Pg 129-130</h3>
+
+<p>The lines </p>
+
+<blockquote><pre>
+int Retries;
+int Ticket;
+</pre></blockquote>
+
+<p> should read</p>
+
+<blockquote><pre>
+int Retries = 0;
+int Ticket = 0;
+</pre></blockquote>
+
+<p>Although both variables are initialized at 0, by explicitly setting the value to 0 we ensure that the content of the variable is reset every time the code is run. This is especially important when the retry on error code is added to a loop.</p>
+
+<p>The changes can be viewed in the <code>Sample Code.mq4</code> file.</p>
+
+<h3>Martingale - Pg 139</h3>
+
+<p>The order counting code on this page should have the second <code>for</code> loop parameter included, <code>Count >= 0</code>: </p>
+
+<blockquote><pre>for(int Count = OrdersHistoryTotal()-1; <b>Count >= 0;</b> Count--)
+{
+	OrderSelect(Count,SELECT_BY_POS,MODE_HISTORY);
+	if(OrderSymbol() == Symbol() && OrderMagicNumber() == MagicNumber)
+	{	
+		if(OrderProfit() > 0 && LossCount == 0) WinCount++;
+		else if(OrderProfit() < 0 && WinCount == 0) LossCount++;
+		else break;
+	}
+}</pre></blockquote>
+
+<p>If there are no matching previous orders in the order history, the original code would loop endlessly. This ensures that the loop will stop executing when all orders in the order history have been reviewed. This error is also in the second printing of the book.</p>
+
+<p>The changes can be viewed in the <code>Sample Code.mq4</code> file.</p>
+
+
+<h3>Appendix C - Pg 173, 177</h3>
+
+<p>The following <span class="fixed">if</span> block is added to both EAs in this chapter. The line <code>if(NewBar == true)</code> is added just before the buy order placement block on pages 173 and 177. This allows the order placement functions to be skipped if the variable <code>NewBar</code> is false. The Run Once Per Bar feature is covered on page 120 of the book. </p>
+
+<blockquote><code>// Begin trade block<br>
+		if(NewBar == true)<br>
+		  &nbsp; { 
+			
+			<br>
+			<br>
+			
+			&nbsp;  }  // End trade block 
+			</code></blockquote>  
+
+<p>On page 177, the line</p>
+
+<blockquote><code>if(FastMA < SlowMA && SellTicket == 0 && BuyMarketCount(Symbol(),MagicNumber) == 0 && BuyStopCount(Symbol(),MagicNumber) == 0)</code></blockquote>
+
+<p>should read</p>
+
+<blockquote><code>if(FastMA < SlowMA && SellTicket == 0 && SellMarketCount(Symbol(),MagicNumber) == 0 && SellStopCount(Symbol(),MagicNumber) == 0)</code></blockquote>
+
+<p>The changes can be viewed in the <code>Advanced Includes.mq4</code> and <code>Advanced Pending Includes.mq4</code> files.</p>
+
+<h3>Appendix C - Pg 177-178</h3>
+
+<p>In the second printing of the book, the functions <code>OpenBuyLimitOrder()</code> and <code>OpenSellLimitOrder()</code> should be <code>OpenBuyStopOrder()</code> and <code>OpenSellStopOrder()</code>. The functions are correct in the first printing of book, and in the <code>Advanced Pending Includes.mq4</code> file.</p>
+
+<h3>Appendix D - Pg 181-183</h3>
+
+<p>The functions <code>OpenSellOrder()</code>, <code>OpenSellStopOrder()</code>, <code>OpenBuyLimitOrder()</code> and <code>OpenSellLimitOrder()</code> have incorrect comments before the <code>OrderSend()</code> function. This does not affect the operation of the code.</p>
+
+<p>The changes can be viewed in the <code>include/IncludeExample.mqh</code> file.</p>
+
+			 
+			 
+			
+
+</ul>
+
+</body>
+</html>
