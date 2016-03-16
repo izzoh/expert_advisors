@@ -1,0 +1,1 @@
+This project will be used as my attempt to learn how to develop expert advisors for my meta trader 4. Hope to learn how to make indicators and more. With more coding, I may be able to make an awesome holygrail of trading :-)
